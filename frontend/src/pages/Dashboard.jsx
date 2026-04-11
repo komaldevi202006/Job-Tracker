@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Briefcase, Plus, LogOut, TrendingUp, Clock, CheckCircle, XCircle, ChevronRight } from 'lucide-react'
 
+const API = 'https://job-tracker-backend-qgjl.onrender.com'
+
 const STATUS = {
   Applied:   { bg: 'bg-blue-900',    text: 'text-blue-300'    },
   Interview: { bg: 'bg-violet-900',  text: 'text-violet-300'  },
@@ -20,7 +22,7 @@ export default function Dashboard() {
   const headers = { Authorization: `Bearer ${token}` }
 
   const fetchJobs = async () => {
-    const res = await axios.get('http://localhost:5000/api/jobs', { headers })
+    const res = await axios.get(`${API}/api/jobs`, { headers })
     setJobs(res.data)
   }
 
@@ -28,30 +30,30 @@ export default function Dashboard() {
 
   const addJob = async () => {
     if (!form.company || !form.role) return alert('Company and Role are required!')
-    await axios.post('http://localhost:5000/api/jobs', form, { headers })
+    await axios.post(`${API}/api/jobs`, form, { headers })
     setForm({ company: '', role: '', status: 'Applied', notes: '' })
     setShowForm(false)
     fetchJobs()
   }
 
   const deleteJob = async (id) => {
-    await axios.delete(`http://localhost:5000/api/jobs/${id}`, { headers })
+    await axios.delete(`${API}/api/jobs/${id}`, { headers })
     fetchJobs()
   }
 
   const updateStatus = async (job, newStatus) => {
-    await axios.put(`http://localhost:5000/api/jobs/${job.id}`, { ...job, status: newStatus }, { headers })
+    await axios.put(`${API}/api/jobs/${job.id}`, { ...job, status: newStatus }, { headers })
     fetchJobs()
   }
 
   const uploadResume = async (jobId, file) => {
-  const formData = new FormData()
-  formData.append('resume', file)
-  await axios.post(`http://localhost:5000/api/jobs/${jobId}/resume`, formData, {
-    headers: { ...headers, 'Content-Type': 'multipart/form-data' }
-  })
-  fetchJobs()
-}
+    const formData = new FormData()
+    formData.append('resume', file)
+    await axios.post(`${API}/api/jobs/${jobId}/resume`, formData, {
+      headers: { ...headers, 'Content-Type': 'multipart/form-data' }
+    })
+    fetchJobs()
+  }
 
   const logout = () => { localStorage.clear(); window.location.href = '/' }
 
@@ -67,8 +69,6 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-gray-950 text-sm">
-
-      {/* Sidebar */}
       <aside className="w-60 bg-gray-900 border-r border-gray-800 flex flex-col p-5 shrink-0">
         <div className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
@@ -76,14 +76,12 @@ export default function Dashboard() {
           </div>
           <span className="text-white font-semibold text-base">JobTracker</span>
         </div>
-
         <nav className="flex-1 space-y-1">
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-indigo-600 text-white font-medium cursor-pointer">
             <TrendingUp size={16} />
             <span>Applications</span>
           </div>
         </nav>
-
         <div className="border-t border-gray-800 pt-4 mt-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold">
@@ -102,10 +100,7 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      {/* Main */}
       <main className="flex-1 overflow-y-auto">
-
-        {/* Top bar */}
         <div className="border-b border-gray-800 bg-gray-900 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
           <div>
             <h1 className="text-white font-semibold text-lg">Welcome back, {user?.name} 👋</h1>
@@ -119,8 +114,6 @@ export default function Dashboard() {
         </div>
 
         <div className="p-8">
-
-          {/* Stats */}
           <div className="grid grid-cols-4 gap-4 mb-8">
             {stats.map(s => (
               <div key={s.label} className={`bg-gradient-to-br ${s.from} ${s.to} rounded-xl p-5 text-white`}>
@@ -134,7 +127,6 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {/* Add Form */}
           {showForm && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
               <p className="text-white font-semibold mb-4">New Application</p>
@@ -166,7 +158,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Filters */}
           <div className="flex gap-2 mb-5">
             {['All', 'Applied', 'Interview', 'Offer', 'Rejected'].map(f => (
               <button key={f} onClick={() => setActiveFilter(f)}
@@ -177,7 +168,6 @@ export default function Dashboard() {
             <span className="ml-auto text-gray-600 text-xs self-center">{filtered.length} applications</span>
           </div>
 
-          {/* Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.length === 0 && (
               <div className="col-span-full text-center py-16 text-gray-600">
@@ -197,47 +187,33 @@ export default function Dashboard() {
                       {job.status}
                     </span>
                   </div>
-
                   <p className="text-white font-semibold text-base">{job.company}</p>
                   <p className="text-gray-500 text-xs mt-0.5">{job.role}</p>
-
                   {job.notes && (
                     <p className="text-gray-600 text-xs border-t border-gray-800 pt-3 mt-3">{job.notes}</p>
                   )}
-
-                  {/* Status Dropdown */}
-                  <select
-                    value={job.status}
-                    onChange={e => updateStatus(job, e.target.value)}
+                  <select value={job.status} onChange={e => updateStatus(job, e.target.value)}
                     className="mt-3 w-full bg-gray-800 border border-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
                     <option>Applied</option>
                     <option>Interview</option>
                     <option>Offer</option>
                     <option>Rejected</option>
                   </select>
-
-                  {/* Resume Upload */}
-<div className="mt-3">
-  {job.resumeUrl ? (
-    <div className="flex items-center justify-between bg-gray-800 px-3 py-2 rounded-lg">
-      <span className="text-emerald-400 text-xs">Resume uploaded ✓</span>
-      <a href={`http://localhost:5000${job.resumeUrl}`} target="_blank" rel="noreferrer"
-        className="text-xs text-indigo-400 hover:text-indigo-300">
-        View
-      </a>
-    </div>
-  ) : (
-    <label className="flex items-center justify-center gap-2 bg-gray-800 border border-dashed border-gray-700 hover:border-indigo-500 px-3 py-2 rounded-lg cursor-pointer transition-colors">
-      <span className="text-gray-500 text-xs">Upload Resume (PDF)</span>
-      <input type="file" accept=".pdf" className="hidden"
-        onChange={e => {
-          const file = e.target.files[0]
-          if (file) uploadResume(job.id, file)
-        }} />
-    </label>
-  )}
-</div>
-
+                  <div className="mt-3">
+                    {job.resumeUrl ? (
+                      <div className="flex items-center justify-between bg-gray-800 px-3 py-2 rounded-lg">
+                        <span className="text-emerald-400 text-xs">Resume uploaded ✓</span>
+                        <a href={`${API}${job.resumeUrl}`} target="_blank" rel="noreferrer"
+                          className="text-xs text-indigo-400 hover:text-indigo-300">View</a>
+                      </div>
+                    ) : (
+                      <label className="flex items-center justify-center gap-2 bg-gray-800 border border-dashed border-gray-700 hover:border-indigo-500 px-3 py-2 rounded-lg cursor-pointer transition-colors">
+                        <span className="text-gray-500 text-xs">Upload Resume (PDF)</span>
+                        <input type="file" accept=".pdf" className="hidden"
+                          onChange={e => { const file = e.target.files[0]; if (file) uploadResume(job.id, file) }} />
+                      </label>
+                    )}
+                  </div>
                   <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-800">
                     <span className="text-gray-700 text-xs">
                       {new Date(job.appliedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
